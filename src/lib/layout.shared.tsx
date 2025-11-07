@@ -1,9 +1,21 @@
 import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared';
+import Image from 'next/image';
 
 export function baseOptions(): BaseLayoutProps {
   return {
     nav: {
-      title: 'Buck2hub',
+      title: (
+        <>
+          <Image
+              src="/images/logo/logo-blue.svg"
+              width={48}
+              height={48}
+              alt="Logo"
+              className="mr-2"
+            />
+          Buck2hub
+        </>  
+      ),
     },
     links: [
       {
@@ -22,8 +34,8 @@ export function baseOptions(): BaseLayoutProps {
         active: 'nested-url',
       },
       {
-        text: 'Forge',
-        url: 'https://forge.rk8s.dev',
+        text: 'Hub',
+        url: 'https://hub.buck2hub.com',
         active: 'nested-url',
       },
     ],
