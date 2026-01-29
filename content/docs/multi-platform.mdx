@@ -32,12 +32,19 @@ If a predicate can’t be mapped to `linux`/`macos`/`windows`, cargo-buckal trea
 
 1. Generate BUCK files:
 
+   For first-time setup (initializes Buck2 at `<repo_root>` and generates BUCK files):
+
    ```bash
-   // Initialize Buck2 configurations with `--buck2`option for the first time
-   cargo buckal migrate --buck2
-   // Or just synchronize the dependency graphs between Cargo and Buck2
+   cargo buckal migrate --init [<repo_root>]
+   ```
+
+   Or, for incremental updates (when Buck2 is already initialized):
+
+   ```bash
    cargo buckal migrate
    ```
+
+   This regenerates BUCK files based on current `Cargo.toml`/`Cargo.lock` changes without reinitializing Buck2. Use this after adding/removing dependencies or updating `Cargo.toml`.
 
 
 2. Build with a target platform:
