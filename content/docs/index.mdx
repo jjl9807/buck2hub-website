@@ -4,15 +4,19 @@ description: Getting Started with cargo buckal
 ---
 
 ## Welcome to Buckal!
-Buckal (also known as `cargo-buckal`), is a plugin that enables seamless migration from Cargo to Buck2, ensures that changes to `Cargo.toml` are automatically reflected in the generated `BUCK` files. This allows developers to use Buck2 with a familiar, Cargo-like workflow — without manual build file maintenance.
+**Buckal** (also known as `cargo-buckal`), is a plugin that enables seamless migration from Cargo to Buck2, ensures that changes to `Cargo.toml` are automatically reflected in the generated `BUCK` files. This allows developers to use Buck2 with a familiar, Cargo-like workflow — without manual build file maintenance.
 
 ![demo](../../public/images/demo.gif)
 
 
 ## Install Buckal
-You can install Buckal from crates.io with a single command:
+You can install the latest stable release from crates.io:
 ```bash
 cargo install cargo-buckal
+```
+Or, to install the latest development version from the active repository:
+```bash
+cargo install --git https://github.com/buck2hub/cargo-buckal.git
 ```
 <Callout title="NOTE">Buckal requires [Buck2](https://buck2.build/) and [Python3](https://www.python.org/). Please ensure both are installed on your system before proceeding.</Callout>
 
@@ -20,8 +24,9 @@ cargo install cargo-buckal
 ## Migrate existing Cargo projects
 For any Cargo project that builds successfully, you can migrate to Buck2 with zero configuration by running the following command in a valid directory (one containing `Cargo.toml`). Buckal will automatically initialize the Buck2 project configuration and convert the Cargo dependency graph into `BUCK` files.
 ```bash
-cargo buckal migrate --buck2
+cargo buckal migrate --init <repo_root>
 ```
+This is equivalent to running `cargo buckal init --repo` at `<repo_root>` followed by `cargo buckal migrate` in the current directory.
 
 
 ## Create a Project from Scratch
