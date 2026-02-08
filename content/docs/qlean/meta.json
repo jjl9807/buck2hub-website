@@ -1,0 +1,5 @@
+{
+  "title": "Qlean",
+  "pages": ["index", "setup", "image", "api"],
+  "root": true
+}

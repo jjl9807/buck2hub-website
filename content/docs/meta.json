@@ -1,5 +1,3 @@
 {
-  "title": "Cargo Buckal",
-  "pages": ["index", "commands", "config", "multi-platform"],
-  "defaultOpen": true
+  "pages": ["(buckal)", "qlean"]
 }

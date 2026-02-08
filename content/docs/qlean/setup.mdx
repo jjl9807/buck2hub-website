@@ -1,0 +1,99 @@
+---
+title: Host Setup
+description: Configure Host Step-by-step
+---
+
+This document provides detailed host setup instructions for Debian- and Ubuntu-based systems. For other Linux distributions, please consult the respective official documentation to address distribution-specific differences.
+
+## QEMU
+
+Install QEMU and its associated tools with the commands below:
+
+```bash
+sudo apt install qemu-system qemu-utils
+```
+
+Qlean uses `qemu-bridge-helper` to manage networking for multiple virtual machines, so it requires proper configuration.
+
+For the default network helper, enabling the setuid bit is typically required. However, for improved security, it is recommended to use Linux capabilities for finer-grained privilege control instead. Specifically, the `CAP_NET_ADMIN` capability should be granted to the helper binary.
+
+```bash
+sudo chmod u-s /usr/lib/qemu/qemu-bridge-helper
+sudo setcap cap_net_admin+ep /usr/lib/qemu/qemu-bridge-helper
+```
+
+The ACL mechanism enforced by `qemu-bridge-helper` defaults to blacklisting all users, so the `qlbr0` bridge created by qlean must be explicitly allowed:
+
+```bash
+sudo mkdir -p /etc/qemu
+sudo sh -c 'echo "allow qlbr0" > /etc/qemu/bridge.conf'
+sudo chmod 644 /etc/qemu/bridge.conf
+```
+
+
+## libvirt
+
+First, install libvirt by running the following instructions:
+
+```bash
+sudo apt install libvirt-daemon libvirt-clients libvirt-daemon-system
+```
+
+Next, add the current user to the `libvirt` and `kvm` groups to enable non-privileged execution of related commands:
+
+```bash
+sudo usermod -aG libvirt,kvm $USER
+newgrp libvirt
+newgrp kvm
+```
+
+Qlean automatically falls back to QEMU's TCG (Tiny Code Generator) engine when KVM is unavailable. Nevertheless, adding the user to the `kvm` group is still required to obtain permissions for using vsock. Under normal circumstances, running `ls -l /dev/vhost-vsock` should display:
+
+```bash
+crw-rw---- 1 root kvm 10, 241 Jan 28 06:00 /dev/vhost-vsock
+```
+
+Finally, start the libvirt service to verify that the installation was successful:
+
+```bash
+sudo systemctl enable libvirtd
+sudo systemctl start libvirtd
+virsh list --all
+```
+
+
+## libguestfs tools
+
+Qlean leverages tools from libguestfs to extract the kernel and initrd from virtual machine images, enabling faster boot times:
+
+```bash
+sudo apt install libguestfs-tools
+```
+
+When building a temporary appliance environment, supermin—the appliance builder used by libguestfs—needs to copy the host's kernel image (`/boot/vmlinuz-*`) into a temporary directory. To allow this operation, the kernel file's read permissions should be relaxed accordingly:
+
+```bash
+sudo chmod 644 /boot/vmlinuz-*
+```
+
+
+## (Optional) Configure network
+
+Qlean uses a dedicated libvirt virtual network to provide isolated, reproducible networking for test VMs. The default network definition is stored at `~/.local/share/qlean/network.xml` as follows:
+
+```xml
+<network>
+  <name>qlean</name>
+  <bridge name='qlbr0'/>
+  <forward mode="nat"/>
+  <ip address='192.168.221.1' netmask='255.255.255.0'>
+    <dhcp>
+      <range start='192.168.221.2' end='192.168.221.254'/>
+    </dhcp>
+  </ip>
+</network>
+```
+
+This configuration defines a **NAT-based** virtual network named `qlean` (used internally by libvirt) that creates a Linux bridge interface called `qlbr0`. The bridge is assigned the IP address `192.168.221.1` and serves as the gateway for a `/24` subnet (`192.168.221.0/24`). A built-in DHCP server automatically assigns IP addresses to virtual machines in the range `192.168.221.2` to `192.168.221.254`, enabling seamless network connectivity between the host, test VMs, and—via NAT—the external network.
+
+<Callout title="NOTE">If the `192.168.221.0/24` subnet conflicts with your local network, you may edit the configuration file to use a different IP range，but keep the `<name>qlean</name>` and `<bridge name='qlbr0'/>` unchanged to ensure compatibility with qlean's internal logic.</Callout>
